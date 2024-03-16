@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Forum</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link your CSS file -->
+    <style>
+        /* Additional styles specific to this page */
+        .create-forum-container {
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div id="menu-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>
+            <a href="index.html">
+                Schoolum
+
+            </a>
+        </h1>
+        <a href="#" id="logout"
+            style="display: none; background-color: seagreen; padding: 5px 10px; border-radius: 5px; color: white; text-decoration: none; margin-right: 20px;">Logout</a>
+        <div id="userEmailDisplay" style="display: none;"></div>
+        <a class="login" id="login_label" style="padding-right: 20px" href="login.html">Login</a>
+        <nav>
+            <ul id="menu" class="menu">
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="notifications.html">Notifications</a></li>
+                <!-- Ensure that the login button is displayed -->
+            </ul>
+        </nav>
+    </header>
+    <div class="create-forum-container">
+        <h2>Create Forum</h2>
+        <form id="forumForm">
+            <label for="forumTitle">Forum Title:</label>
+            <input type="text" id="forumTitle" name="forumTitle" required>
+
+            <label for="forumDescription">Forum Description:</label>
+            <textarea id="forumDescription" name="forumDescription" rows="4" required></textarea>
+
+            <input type="submit" value="Create Forum">
+        </form>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHhPCGdLjkHOoQZExpcvkwVdx_NZ-mFdI",
+  authDomain: "schoolum-76e7c.firebaseapp.com",
+  projectId: "schoolum-76e7c",
+  storageBucket: "schoolum-76e7c.appspot.com",
+  messagingSenderId: "520733511293",
+  appId: "1:520733511293:web:2e6b35fb909ae66deeab14",
+  measurementId: "G-2CD2GTJ98K"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+
+        document.getElementById('forumForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var title = document.getElementById('forumTitle').value;
+            var description = document.getElementById('forumDescription').value;
+
+            // Listen for authentication state changes
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user) {
+                    // User is signed in, you can access their email
+                    db.collection("forums").add({
+                        title: title,
+                        description: description,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        createdBy: user.email // Access the email property of the user
+                    }).then(() => {
+                        alert("Forum created successfully!");
+                        window.location.href = 'explore.html'; // Redirect to explore page or index.html
+                    }).catch((error) => {
+                        console.error("Error creating forum: ", error);
+                        alert("Error creating forum. Please try again.");
+                    });
+                } else {
+                    // No user is signed in, handle this situation (e.g., prompt the user to sign in)
+                    alert("You need to sign in to create a forum.");
+                    // You can redirect the user to the sign-in page or take any other appropriate action
+                }
+            });
+        });
+
+        // Add event listener for menu icon (optional)
+        document.getElementById('menu-icon').addEventListener('click', function () {
+            document.getElementById('menu').classList.toggle('show');
+        });
+
+    </script>
+</body>
+
+</html>

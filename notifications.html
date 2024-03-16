@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Forums</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link your CSS file -->
+    <style>
+        header {
+            margin-bottom: 30px;
+            ;
+        }
+
+        /* Add your CSS styles here */
+        .notification-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+            padding: 15px;
+        }
+
+        .notification-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .notification-date {
+            color: #666;
+        }
+
+        .single-comment-details {
+            margin-top: 10px;
+        }
+
+        .commenter {
+            font-weight: bold;
+        }
+
+        .single-comment-text {
+            margin-top: 5px;
+        }
+
+        .single-comment-date {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .forum {
+            padding: 20px;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background-color: #f9f9f9;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .forum:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Additional styles for notifications */
+        #notification-container {
+            padding: 20px;
+            max-width: 800px;
+            /* Adjust based on preference */
+            margin: auto;
+        }
+
+        .forum-title,
+        .forum-description {
+            color: #333;
+            /* Darker text for better readability */
+            padding: 5px 0;
+            /* More space around text */
+        }
+
+        .forum-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            /* Larger text for titles */
+        }
+
+        .comments-container {
+            border-top: 1px solid #eee;
+            /* Separator */
+            padding-top: 10px;
+            /* Space between forum details and comments */
+            margin-top: 10px;
+        }
+
+        .single-comment {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .single-comment:hover {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .single-comment p {
+            margin: 5px 0;
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div id="menu-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>
+            <a href="index.html">
+                Schoolum
+
+            </a>
+        </h1>
+        <a href="#" id="logout"
+            style="display: none; background-color: seagreen; padding: 5px 10px; border-radius: 5px; color: white; text-decoration: none; margin-right: 20px;">Logout</a>
+        <div id="userEmailDisplay" style="display: none;"></div>
+
+        <nav>
+            <ul id="menu" class="menu">
+                <li> <a class="hoome" id="home_label" href="index.html">Home</a></li>
+                <li> <a class="register" id="register_label" href="register.html">Register</a></li>
+                <!-- Ensure that the login button is displayed -->
+            </ul>
+        </nav>
+    </header>
+    <h1 class="explore-title">Notifications</h1>
+
+    <div id="notification-container"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHhPCGdLjkHOoQZExpcvkwVdx_NZ-mFdI",
+  authDomain: "schoolum-76e7c.firebaseapp.com",
+  projectId: "schoolum-76e7c",
+  storageBucket: "schoolum-76e7c.appspot.com",
+  messagingSenderId: "520733511293",
+  appId: "1:520733511293:web:2e6b35fb909ae66deeab14",
+  measurementId: "G-2CD2GTJ98K"
+        };
+
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        let orderType = "desc";
+
+        // Function to load comment notifications
+        function loadCommentNotifications() {
+            const forumsContainer = document.getElementById('notification-container');
+            forumsContainer.innerHTML = ''; // Clear existing content
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    const currentUserEmail = user.email;
+                    db.collection("forums").where("createdBy", "==", currentUserEmail).orderBy("timestamp", orderType).get().then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            const forum = doc.data();
+                            const forumElement = document.createElement('div');
+                            forumElement.classList.add('forum');
+                            forumElement.innerHTML = `
+                        <div class="forum-title">Title: ${forum.title}</div>
+                        <div class="forum-description">Description: ${forum.description}</div>
+                    `;
+
+                            // Fetch comments for this forum
+                            db.collection("forums").doc(doc.id).collection("comments").orderBy("timestamp").get().then((commentSnapshot) => {
+                                const comments = commentSnapshot.docs;
+                                if (comments.length > 0) { // Check if there are any comments
+                                    const commentsContainer = document.createElement('div');
+                                    commentsContainer.classList.add('comments-container');
+                                    forumElement.appendChild(commentsContainer);
+                                    comments.forEach((commentDoc) => {
+                                        const comment = commentDoc.data();
+                                        const commentElement = document.createElement('div');
+                                        commentElement.classList.add('single-comment');
+                                        commentElement.innerHTML = `
+                                    <p>Comment: ${comment.text}</p>
+                                    <p>Posted by: ${comment.author}</p>
+                                `;
+                                        commentsContainer.appendChild(commentElement);
+                                    });
+                                    forumsContainer.appendChild(forumElement);
+                                }
+                            });
+                        });
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCommentNotifications);
+
+
+        // Add event listener for menu icon (optional)
+        document.getElementById('menu-icon').addEventListener('click', function () {
+            document.getElementById('menu').classList.toggle('show');
+        });
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        /* Styles for the login page */
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            margin-top: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-form label {
+            margin-top: 10px;
+        }
+
+        .login-form input[type=email],
+        .login-form input[type=password] {
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .login-form button {
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .login-form button:hover {
+            background-color: #004494;
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div id="menu-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>
+            <a href="index.html">
+                Schoolum
+
+            </a>
+        </h1>
+        <a href="#" id="logout"
+            style="display: none; background-color: seagreen; padding: 5px 10px; border-radius: 5px; color: white; text-decoration: none; margin-right: 20px;">Logout</a>
+        <div id="userEmailDisplay" style="display: none;"></div>
+
+        <nav>
+            <ul id="menu" class="menu">
+                <li> <a class="hoome" id="home_label" href="index.html">Home</a></li>
+                <li> <a class="register" id="register_label" href="register.html">Register</a></li>
+                <!-- Ensure that the login button is displayed -->
+            </ul>
+        </nav>
+    </header>
+
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm" class="login-form">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <button type="submit">Login</button>
+
+        </form>
+        <a class="register" id="register_label" href="register.html">
+            <button>Register</button>
+        </a>
+
+    </div>
+
+    <!-- Firebase scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+
+    <script>
+
+
+        // Add event listener for menu icon (optional)
+        document.getElementById('menu-icon').addEventListener('click', function () {
+            document.getElementById('menu').classList.toggle('show');
+        });
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHhPCGdLjkHOoQZExpcvkwVdx_NZ-mFdI",
+  authDomain: "schoolum-76e7c.firebaseapp.com",
+  projectId: "schoolum-76e7c",
+  storageBucket: "schoolum-76e7c.appspot.com",
+  messagingSenderId: "520733511293",
+  appId: "1:520733511293:web:2e6b35fb909ae66deeab14",
+  measurementId: "G-2CD2GTJ98K"
+        };
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    location.replace('index.html');
+                })
+                .catch((error) => {
+                    console.error('Error signing in:', error);
+                    alert('Invalid email or password. Please try again.');
+                });
+        });
+
+    </script>
+</body>
+
+</html>

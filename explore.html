@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Forums</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link your CSS file -->
+    <style>
+        /* Style the buttons that are used to open and close the accordion panel */
+        .accordion {
+            background-color: #f0f0f0;
+            color: #444;
+            cursor: pointer;
+            padding: 15px;
+            width: 100%;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+        .accordion:hover,
+        .accordion.active {
+            background-color: #ddd;
+        }
+
+        /* Style the accordion panel. Note: hidden by default */
+        .panel {
+            padding: 15px;
+            background-color: #fff;
+            display: none;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        /* Additional styles specific to this page */
+        .explore-title {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 160px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            border-radius: 5px;
+            padding: 10px 0;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 10px 20px;
+            display: block;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Styles for forum boxes */
+        .forum {
+            width: 80%;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .forum-details {
+            padding: 15px;
+            display: none;
+        }
+
+        .forum.open .forum-details {
+            display: block;
+        }
+
+        .comments-container {
+            border-radius: 2px;
+        }
+
+        .single-comment {
+            background: #efefef;
+            border-radius: 2px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .comment-form {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .comment-form.open {
+            display: block;
+        }
+
+        .comment-form textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .comment-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .comment-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div id="menu-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>
+            <a href="index.html">
+                Schoolum
+
+            </a>
+        </h1>
+        <a href="#" id="logout"
+            style="display: none; background-color: seagreen; padding: 5px 10px; border-radius: 5px; color: white; text-decoration: none; margin-right: 20px;">Logout</a>
+        <div id="userEmailDisplay" style="display: none;"></div>
+        <a class="login" id="login_label" style="padding-right: 20px" href="login.html">Login</a>
+        <nav>
+            <ul id="menu" class="menu">
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="notifications.html">Notifications</a></li>
+                <!-- Ensure that the login button is displayed -->
+            </ul>
+        </nav>
+    </header>
+    <h1 class="explore-title">Exploring Forums</h1>
+
+    <div class="dropdown">
+        <button class="dropbtn">Sort By</button>
+        <div class="dropdown-content">
+            <a href="#" onclick="sortByMostRecent()">Most Recent</a>
+            <a href="#" onclick="sortByMostOldest()">Most Oldest</a>
+        </div>
+    </div>
+
+    <div id="forums-container"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHhPCGdLjkHOoQZExpcvkwVdx_NZ-mFdI",
+  authDomain: "schoolum-76e7c.firebaseapp.com",
+  projectId: "schoolum-76e7c",
+  storageBucket: "schoolum-76e7c.appspot.com",
+  messagingSenderId: "520733511293",
+  appId: "1:520733511293:web:2e6b35fb909ae66deeab14",
+  measurementId: "G-2CD2GTJ98K"
+        };
+
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        let orderType = "desc";
+
+        function loadForums() {
+            const forumsContainer = document.getElementById('forums-container');
+            forumsContainer.innerHTML = ''; // Clear existing content
+            db.collection("forums").orderBy("timestamp", orderType).get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const forum = doc.data();
+                    const forumElement = document.createElement('div');
+                    forumElement.classList.add('forum');
+                    forumElement.innerHTML = `
+                <div class="accordion">
+                    <div class="accordion-title"> Title: ${forum.title}</div>
+                    <div class="accordion-title"> Description: ${forum.description}</div>
+                    <div class="accordion-date"> Date: ${forum.timestamp.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' })}</div>
+                </div>
+                <div class="forum-details">
+                    <p>Created by: ${forum.createdBy}</p>
+                    <div class="comments-container" id="comments-${doc.id}"></div>
+                    <div class="comment-form">
+                        <textarea id="comment-${doc.id}" placeholder="Add your comment"></textarea>
+                        <button onclick="addComment('${doc.id}')">Add Comment</button>
+                    </div>
+                </div>
+            `;
+                    forumsContainer.appendChild(forumElement);
+
+                    // Fetch comments for this forum
+                    const commentsContainer = document.getElementById(`comments-${doc.id}`);
+                    db.collection("forums").doc(doc.id).collection("comments").orderBy("timestamp").get().then((querySnapshot) => {
+                        querySnapshot.forEach((commentDoc) => {
+                            const comment = commentDoc.data();
+                            const commentElement = document.createElement('div');
+                            commentElement.innerHTML = `
+                        <div class="single-comment">
+                            <p>Comment: ${comment.text}</p>
+                            <p>Posted by: ${comment.author}</p>
+                        </div>
+                    `;
+                            commentsContainer.appendChild(commentElement);
+                        });
+                    });
+                });
+
+                // Add event listeners to toggle accordion behavior and comment form
+                const accordions = document.querySelectorAll('.accordion');
+                accordions.forEach(accordion => {
+                    accordion.addEventListener('click', function () {
+                        this.classList.toggle('active');
+                        const panel = this.nextElementSibling;
+                        if (panel.style.display === 'block') {
+                            panel.style.display = 'none';
+                            panel.querySelector('.comment-form').classList.remove('open');
+                        } else {
+                            panel.style.display = 'block';
+                            panel.querySelector('.comment-form').classList.add('open');
+                        }
+                    });
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadForums);
+
+        function sortByMostOldest() {
+            orderType = "asc";
+            loadForums();
+        }
+
+        function sortByMostRecent() {
+            orderType = "desc";
+            loadForums();
+        }
+
+        function addComment(forumId) {
+            const commentTextarea = document.getElementById(`comment-${forumId}`);
+            const commentText = commentTextarea.value.trim();
+            if (commentText !== '') {
+                firebase.auth().onAuthStateChanged(function (user) {
+                    if (user) {
+                        db.collection("forums").doc(forumId).collection("comments").add({
+                            text: commentText,
+                            author: firebase.auth().currentUser.email,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            alert("Comment added successfully!");
+                            // Optionally refresh the page or update the comments section
+                            location.reload();
+                        }).catch((error) => {
+                            console.error("Error adding comment: ", error);
+                            alert("Error adding comment. Please try again.");
+                        });
+                    } else {
+                        // No user is signed in, handle this situation (e.g., prompt the user to sign in)
+                        alert("You need to sign in to create a forum.");
+                        // You can redirect the user to the sign-in page or take any other appropriate action
+                    }
+                });
+            } else {
+                alert("Please enter a comment.");
+            }
+
+        }
+
+        // Add event listener for menu icon (optional)
+        document.getElementById('menu-icon').addEventListener('click', function () {
+            document.getElementById('menu').classList.toggle('show');
+        });
+    </script>
+</body>
+
+</html>

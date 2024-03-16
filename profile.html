@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles for the profile page */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .profile-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            margin-top: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .profile-info h2 {
+            margin-top: 0;
+        }
+
+        .profile-info p {
+            margin: 5px 0;
+        }
+
+        .profile-info input[type="text"] {
+            padding: 5px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .update-btn {
+            padding: 10px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .update-btn:hover {
+            background-color: #004494;
+        }
+
+        .logout-btn {
+            padding: 10px;
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background-color: #c9302c;
+        }
+
+        .disabled-input {
+            background-color: #f0f0f0;
+            color: #333;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div id="menu-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>
+            <a href="index.html">
+                Schoolum
+
+            </a>
+        </h1>
+        <a href="#" id="logout"
+            style="display: none; background-color: seagreen; padding: 5px 10px; border-radius: 5px; color: white; text-decoration: none; margin-right: 20px;">Logout</a>
+        <div id="userEmailDisplay" style="display: none;"></div>
+        <nav>
+            <ul id="menu" class="menu">
+                <li> <a class="hoome" id="home_label" href="index.html">Home</a></li>
+                <li> <a class="register" id="register_label" href="register.html">Register</a></li>
+                <!-- Ensure that the login button is displayed -->
+            </ul>
+        </nav>
+    </header>
+    <div class="profile-container">
+        <div class="profile-info">
+            <h2>Welcome to Your Profile</h2>
+            <div>
+                <label for="email">Email:</label>
+                <input type="text" id="email" disabled class="disabled-input">
+            </div>
+            <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name">
+            </div>
+            <div>
+                <label for="phoneNumber">Phone Number:</label>
+                <input type="text" id="contact">
+            </div>
+
+            <div style="display: flex;justify-content: space-between;margin-top: 20px;">
+                <button class=" update-btn" onclick="updateProfile()">Update Profile</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Firebase scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHhPCGdLjkHOoQZExpcvkwVdx_NZ-mFdI",
+  authDomain: "schoolum-76e7c.firebaseapp.com",
+  projectId: "schoolum-76e7c",
+  storageBucket: "schoolum-76e7c.appspot.com",
+  messagingSenderId: "520733511293",
+  appId: "1:520733511293:web:2e6b35fb909ae66deeab14",
+  measurementId: "G-2CD2GTJ98K"
+        };
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        // Fetch user data when the page loads
+        firebase.auth().onAuthStateChanged(function (user) {
+            if (user) {
+                const userId = user.uid;
+                const userRef = firebase.firestore().collection('users').doc(userId);
+
+                userRef.get().then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        document.getElementById('email').value = user.email || '';
+                        document.getElementById('name').value = userData.name || '';
+                        document.getElementById('contact').value = userData.contact || '';
+                    } else {
+                        console.log("No such document!");
+                    }
+                }).catch((error) => {
+                    console.log("Error getting document:", error);
+                });
+            }
+        });
+
+        // Function to log out the user
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                // Sign-out successful.
+                window.location.replace('login.html'); // Redirect to the login page
+            }).catch((error) => {
+                // An error happened.
+                console.error('Error logging out:', error);
+            });
+        }
+
+        // Function to update the user's profile
+        function updateProfile() {
+            const user = firebase.auth().currentUser;
+            if (user) {
+                const userId = user.uid;
+                const userRef = firebase.firestore().collection('users').doc(userId);
+
+                const name = document.getElementById('name').value;
+                const contact = document.getElementById('contact').value;
+
+                return userRef.update({
+                    name: name,
+                    contact: contact
+                })
+                    .then(() => {
+                        console.log("Profile updated successfully!");
+                        alert('Profile updated successfully!');
+                    })
+                    .catch((error) => {
+                        console.error('Error updating profile:', error);
+                        alert('Profile update failed. Please try again.');
+                    });
+            }
+        }
+        // Add event listener for menu icon (optional)
+        document.getElementById('menu-icon').addEventListener('click', function () {
+            document.getElementById('menu').classList.toggle('show');
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schoolum - Online Forum</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div id="menu-icon">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>
+            <a href="index.html">
+                Schoolum
+
+            </a>
+        </h1>
+        <a href="#" id="logout"
+            style="display: none; background-color: seagreen; padding: 5px 10px; border-radius: 5px; color: white; text-decoration: none; margin-right: 20px;">Logout</a>
+        <div id="userEmailDisplay" style="display: none;"></div>
+        <a class="login" id="login_label" style="padding-right: 20px" href="login.html">Login</a>
+        <nav>
+            <ul id="menu" class="menu">
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="notifications.html">Notifications</a></li>
+                <li><a href="register.html">Register</a></li>
+                <!-- Ensure that the login button is displayed -->
+            </ul>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="background-image"></div>
+        <div class="overlay-text"></div>
+    </div>
+    <div class="gray-line"></div>
+    <div class="cne">
+        <h1>Create and Explore Forums</h1>
+        <div class="forum-actions">
+            <button class="btn" id="create-forum">Create</button>
+            <button class="btn" id="explore-forum">Explore</button>
+        </div>
+        <div class="gray-line"></div>
+        <div class="student-feedback"></div>
+    </div>
+    <div class="student-feedback">
+        <h2>Hear from our students</h2>
+        <p>What They're Saying</p>
+        <p>At Schoolum, we value our students and their feedback.
+            <br>
+            Read below to hear reviews straight from the source.
+            <br>
+            Let our sparking feedback speak for itself
+        </p>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHhPCGdLjkHOoQZExpcvkwVdx_NZ-mFdI",
+  authDomain: "schoolum-76e7c.firebaseapp.com",
+  projectId: "schoolum-76e7c",
+  storageBucket: "schoolum-76e7c.appspot.com",
+  messagingSenderId: "520733511293",
+  appId: "1:520733511293:web:2e6b35fb909ae66deeab14",
+  measurementId: "G-2CD2GTJ98K"
+        };
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        function updateLoginState(user) {
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            const logoutButton = document.getElementById('logout');
+            const loginButton = document.getElementById('login_label');
+            if (user) {
+                userEmailDisplay.textContent = user.email; // Display user's email
+                userEmailDisplay.style.display = 'block'; // Make sure this is visible
+                logoutButton.style.display = 'block'; // Show the logout button
+                loginButton.style.display = 'none'; // Hide the login button
+            } else {
+                userEmailDisplay.style.display = 'none'; // Hide the email display
+                logoutButton.style.display = 'none'; // Hide the logout button
+                loginButton.style.display = 'block'; // Show the login button
+            }
+        }
+
+        // Set up the onAuthStateChanged observer
+        firebase.auth().onAuthStateChanged((user) => {
+            updateLoginState(user);
+
+        });
+
+        // Add event listener for logout button
+        document.getElementById('logout').addEventListener('click', function () {
+            firebase.auth().signOut().then(() => {
+                updateLoginState(null);
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+            });
+        });
+
+        // Add event listener for menu icon (optional)
+        document.getElementById('menu-icon').addEventListener('click', function () {
+            document.getElementById('menu').classList.toggle('show');
+        });
+
+        document.getElementById('create-forum').addEventListener('click', function () {
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user) {
+                    window.location.href = 'create_forum.html'; // Redirect to create_forum page if user is logged in
+                } else {
+                    window.location.href = 'login.html'; // Redirect to login page if user is not logged in
+                }
+            });
+        });
+        document.getElementById('explore-forum').addEventListener('click', function () {
+            // Directly redirect to the explore page
+            window.location.href = 'explore.html';
+        });
+
+
+        // Add event listeners for other functionalities (if any)
+    </script>
+</body>
+
+</html>
